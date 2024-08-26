@@ -1,0 +1,20 @@
+/*
+ * Copyright (c) 2021 Teslabs Engineering S.L.
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+&arduino_spi {
+	cs-gpios = <&arduino_header 16 GPIO_ACTIVE_LOW>,/* D10 */
+		   <&arduino_header 15 GPIO_ACTIVE_LOW>;/* D9 */
+	thermocouple0: max6675@0 {
+		compatible = "maxim,max6675";
+		reg = <0>;
+		spi-max-frequency = <4300000>;
+	};
+	thermocouple1: max6675@1 {
+		compatible = "maxim,max6675";
+		reg = <1>;
+		spi-max-frequency = <4300000>;
+	};
+};
