@@ -1,8 +1,27 @@
 /*
- * Copyright (c) 2021 Teslabs Engineering S.L.
- *
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2024, Jan Kuliga
  */
+
+/ {
+	zephyr,user {
+		/* CN9 pin A1 */
+		io-channels = <&adc1 2>;
+	};
+};
+
+&adc1 {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+
+	channel@2 {
+		reg = <2>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};
 
 &arduino_spi {
 	cs-gpios = <&arduino_header 16 GPIO_ACTIVE_LOW>,/* D10 */
