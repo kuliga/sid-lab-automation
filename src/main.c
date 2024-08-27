@@ -74,6 +74,16 @@ static int adc_get_mv_reading(const struct device *const dev, const struct adc_s
 	return 0;
 }
 
+static double mp3v5050v_get_pressure(const struct device *const adc_dev, int32_t val_mv)
+{
+	return 56 * ((float)val_mv / adc_ref_internal(adc_dev)) - 52;
+}
+
+static double mp3v5050v_get_pressure_error(void)
+{
+	return 1.25f * 1; // TODO: read the temperature to use proper temperature multiplier value
+}
+
 int main(void)
 {
 	int ret = -1;
@@ -98,7 +108,7 @@ int main(void)
 	}
 
 	while (1) {
-		int32_t val_mv;
+		int32_t val_mv = 0;
 
 		for (int i = 0; i < 2; ++i) {
 			int ret;
@@ -124,6 +134,8 @@ int main(void)
 		} else {
 			printk("adc reading = %"PRId32" mV\n", val_mv);
 		}
+		printf("mp3v5050v: %.2f +- %.2f kPa\n", mp3v5050v_get_pressure(adc_dev, val_mv),
+			mp3v5050v_get_pressure_error());
 
 		k_sleep(K_MSEC(1000));
 	}
