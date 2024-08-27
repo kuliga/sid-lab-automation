@@ -4,8 +4,7 @@
 
 / {
 	zephyr,user {
-		/* CN9 pin A1 */
-		io-channels = <&adc1 2>;
+		io-channels = <&adc1 2>; /* CN9 pin A1 */
 	};
 };
 
@@ -14,7 +13,7 @@
 	#size-cells = <0>;
 
 
-	channel@2 {
+	pressure_sensor0: channel@2 {
 		reg = <2>;
 		zephyr,gain = "ADC_GAIN_1";
 		zephyr,reference = "ADC_REF_INTERNAL";

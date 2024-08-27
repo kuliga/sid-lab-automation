@@ -1,51 +1,128 @@
 /*
- * Copyright (c) 2021 Teslabs Engineering S.L.
- *
- * SPDX-License-Identifier: Apache-2.0
+ * Copyright (c) 2024, Jan Kuliga
  */
+
+#include <inttypes.h>
+#include <stddef.h>
+#include <stdint.h>
+
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
+#include <zephyr/drivers/adc.h>
+#include <zephyr/kernel.h>
+#include <zephyr/sys/printk.h>
+#include <zephyr/sys/util.h>
 
 #include <stdio.h>
-
-#include <zephyr/kernel.h>
-#include <zephyr/device.h>
 #include <zephyr/drivers/sensor.h>
 
-/**
- * @file Sample app using the MAX6675 cold-junction-compensated K-thermocouple
- *	 to digital converter.
- *
- * This app will read and display the sensor temperature every second.
- */
+static const struct device *const thrmcpl_devs[] = {DEVICE_DT_GET(DT_NODELABEL(thermocouple0)),
+						    DEVICE_DT_GET(DT_NODELABEL(thermocouple1))};
+static const struct device *const adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc1));
+static const struct adc_channel_cfg adc_chan2_cfg =
+				ADC_CHANNEL_CFG_DT(DT_NODELABEL(pressure_sensor0));
 
-int main(void)
+
+static int thermocouples_init(const struct device *const *devs, int ndevs)
 {
-	//const struct device *const dev = DEVICE_DT_GET_ONE(maxim_max6675);
-	const struct device *const devs[] = {DEVICE_DT_GET(DT_NODELABEL(thermocouple0)), DEVICE_DT_GET(DT_NODELABEL(thermocouple1))};
-
-	for (int i = 0; i < 2; ++i) {
+	for (int i = 0; i < ndevs; ++i) {
 		if (!device_is_ready(devs[i])) {
-			printk("sensor %d: device not ready.\n", i);
-			return 0;
+			printk("thermocouple %d: device is not ready\n", i);
+			return -1;
 		}
 	}
 
+	return 0;
+}
+
+static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg)
+{
+	if (!device_is_ready(dev)) {
+		printk("adc: device is not ready\n");
+		return -1;
+	}
+
+	if (adc_channel_setup(dev, chan_cfg)) {
+		printk("adc: could not setup the channel\n");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int adc_get_mv_reading(const struct device *const dev, const struct adc_sequence *const seq,
+			      const struct adc_channel_cfg *const cfg, int32_t *val_mv)
+{
+	int ret;
+	int32_t val;
+
+	ret = adc_read(dev, seq);
+	if (ret) {
+		printk("failed to read adc sequence: %d\n", ret);
+		return -1;
+	}
+	val = (int32_t)(*(uint16_t *)seq->buffer);
+	printk("val: %d\n", val);
+
+	ret = adc_raw_to_millivolts(adc_ref_internal(dev), cfg->gain, seq->resolution, &val);
+	if (ret) {
+		printk("failed to convert the adc reading to milivolts: %d\n", ret);
+		return -1;
+	}
+	*val_mv = val;
+
+	return 0;
+}
+
+int main(void)
+{
+	int ret = -1;
+	uint16_t adc_buf;
+	const struct adc_sequence adc_seq = {
+		.buffer		= &adc_buf,
+		.buffer_size	= sizeof(adc_buf),
+		.channels	= BIT(adc_chan2_cfg.channel_id),
+		.resolution	= DT_PROP(DT_NODELABEL(pressure_sensor0), zephyr_resolution),
+	};
+
+	ret = thermocouples_init(thrmcpl_devs, ARRAY_SIZE(thrmcpl_devs));
+	if (ret) {
+		printk("sid: exit %d\n", ret);
+		return 1;
+	}
+
+	ret = adc_init(adc_dev, &adc_chan2_cfg);
+	if (ret) {
+		printk("sid: exit %d\n", ret);
+		return 1;
+	}
+
 	while (1) {
+		int32_t val_mv;
+
 		for (int i = 0; i < 2; ++i) {
 			int ret;
 			struct sensor_value val;
-			ret = sensor_sample_fetch_chan(devs[i], SENSOR_CHAN_AMBIENT_TEMP);
+			ret = sensor_sample_fetch_chan(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP);
 			if (ret < 0) {
 				printf("Could not fetch temperature (%d)\n", ret);
 				return 0;
 			}
 	
-			ret = sensor_channel_get(devs[i], SENSOR_CHAN_AMBIENT_TEMP, &val);
+			ret = sensor_channel_get(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP, &val);
 			if (ret < 0) {
 				printf("Could not get temperature (%d)\n", ret);
 				return 0;
 			}
 	
 			printf("Temperature%d: %.2f C\n", i, sensor_value_to_double(&val));
+		}
+
+		ret = adc_get_mv_reading(adc_dev, &adc_seq, &adc_chan2_cfg, &val_mv);
+		if (ret) {
+			printk(" (value in mV not available)\n");
+		} else {
+			printk("adc reading = %"PRId32" mV\n", val_mv);
 		}
 
 		k_sleep(K_MSEC(1000));
