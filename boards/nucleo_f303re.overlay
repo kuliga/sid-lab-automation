@@ -6,6 +6,23 @@
 	zephyr,user {
 		io-channels = <&adc1 2>; /* CN9 pin A1 */
 	};
+
+	lcd0: auxdisplay {
+		compatible = "hit,hd44780";
+		status = "okay";
+		columns = <16>;
+		rows = <2>;
+		mode = <4>;
+		boot-delay-ms = <400>;
+		register-select-gpios = <&st_morpho_header ST_MORPHO_R_29 (GPIO_ACTIVE_HIGH)>;
+		enable-gpios = <&st_morpho_header ST_MORPHO_R_27 (GPIO_ACTIVE_HIGH)>;
+		read-write-gpios = <&st_morpho_header ST_MORPHO_R_25 (GPIO_ACTIVE_HIGH)>;
+		data-bus-gpios = <0>, <0>, <0>, <0>,
+				 <&st_morpho_header ST_MORPHO_R_30 (GPIO_ACTIVE_HIGH)>,
+				 <&st_morpho_header ST_MORPHO_R_28 (GPIO_ACTIVE_HIGH)>,
+				 <&st_morpho_header ST_MORPHO_R_26 (GPIO_ACTIVE_HIGH)>,
+				 <&st_morpho_header ST_MORPHO_R_24 (GPIO_ACTIVE_HIGH)>;
+	};
 };
 
 &adc1 {

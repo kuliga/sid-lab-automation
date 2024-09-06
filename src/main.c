@@ -16,6 +16,10 @@
 #include <stdio.h>
 #include <zephyr/drivers/sensor.h>
 
+#include <zephyr/logging/log.h>
+
+LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
+
 static const struct device *const thrmcpl_devs[] = {DEVICE_DT_GET(DT_NODELABEL(thermocouple0)),
 						    DEVICE_DT_GET(DT_NODELABEL(thermocouple1))};
 static const struct device *const adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc1));
@@ -93,6 +97,7 @@ int main(void)
 		.buffer_size	= sizeof(adc_buf),
 		.channels	= BIT(adc_chan2_cfg.channel_id),
 		.resolution	= DT_PROP(DT_NODELABEL(pressure_sensor0), zephyr_resolution),
+		.calibrate	= true,
 	};
 
 	ret = thermocouples_init(thrmcpl_devs, ARRAY_SIZE(thrmcpl_devs));
