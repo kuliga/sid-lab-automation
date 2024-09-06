@@ -26,6 +26,8 @@ static const struct device *const adc_dev = DEVICE_DT_GET(DT_NODELABEL(adc1));
 static const struct adc_channel_cfg adc_chan2_cfg =
 				ADC_CHANNEL_CFG_DT(DT_NODELABEL(pressure_sensor0));
 
+static const struct device *const lcd_dev = DEVICE_DT_GET(DT_NODELABEL(lcd0));
+
 
 static int thermocouples_init(const struct device *const *devs, int ndevs)
 {
@@ -49,6 +51,23 @@ static int adc_init(const struct device *const dev, const struct adc_channel_cfg
 	if (adc_channel_setup(dev, chan_cfg)) {
 		printk("adc: could not setup the channel\n");
 		return -1;
+	}
+
+	return 0;
+}
+
+static int lcd_init(const struct device *const dev)
+{
+	int ret;
+
+	if (!device_is_ready(dev)) {
+		printk("lcd: device is not ready\n");
+		return -1;
+	}
+
+	ret = auxdisplay_clear(dev);
+	if (ret) {
+		LOG_WARN("lcd: failed to clear the display");
 	}
 
 	return 0;
@@ -107,6 +126,12 @@ int main(void)
 	}
 
 	ret = adc_init(adc_dev, &adc_chan2_cfg);
+	if (ret) {
+		printk("sid: exit %d\n", ret);
+		return 1;
+	}
+
+	ret = lcd_init(lcd_dev);
 	if (ret) {
 		printk("sid: exit %d\n", ret);
 		return 1;
