@@ -50,6 +50,7 @@ static inline double mp3v5050v_get_pressure_error(void)
 }
 
 INPUT_CALLBACK_DEFINE(NULL, button_callback);
+static volatile unsigned displayed_info_flag = 0;
 
 int main(void)
 {
@@ -185,4 +186,15 @@ static int adc_get_mv_reading(const struct device *const dev, const struct adc_s
 
 static void button_callback(struct input_event *evt)
 {
+	if (evt->type != INPUT_EV_KEY || evt->code != INPUT_KEY_0) {
+		LOG_ERR("spurious input event");
+		return;
+	}
+
+	if (evt->value == 0) {
+		displayed_info_flag  = (displayed_info_flag + 1) % 3u;
+		LOG_INF("button pressed: %u", displayed_info_flag);
+	} else {
+		LOG_INF("button released");
+	}
 }
