@@ -18,6 +18,8 @@
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/auxdisplay.h>
 
+#include <zephyr/input/input.h>
+
 
 LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
 
@@ -28,12 +30,14 @@ static const struct adc_channel_cfg adc_chan2_cfg =
 				ADC_CHANNEL_CFG_DT(DT_NODELABEL(pressure_sensor0));
 
 static const struct device *const lcd_dev = DEVICE_DT_GET(DT_NODELABEL(lcd0));
+static const struct device *const button_dev = DEVICE_DT_GET(DT_NODELABEL(user_button));
 
 static int thermocouples_init(const struct device *const *devs, int ndevs);
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
 static int lcd_init(const struct device *const dev);
 static int adc_get_mv_reading(const struct device *const dev, const struct adc_sequence *const seq,
 			      const struct adc_channel_cfg *const cfg, int32_t *val_mv);
+static void button_callback(struct input_event *evt);
 
 static inline double mp3v5050v_get_pressure(const struct device *const adc_dev, int32_t val_mv)
 {
@@ -44,6 +48,8 @@ static inline double mp3v5050v_get_pressure_error(void)
 {
 	return 1.25f * 1; // TODO: read the temperature to use proper temperature multiplier value
 }
+
+INPUT_CALLBACK_DEFINE(NULL, button_callback);
 
 int main(void)
 {
@@ -175,4 +181,8 @@ static int adc_get_mv_reading(const struct device *const dev, const struct adc_s
 	*val_mv = val;
 
 	return 0;
+}
+
+static void button_callback(struct input_event *evt)
+{
 }
