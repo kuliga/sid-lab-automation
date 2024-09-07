@@ -10,13 +10,14 @@
 #include <zephyr/devicetree.h>
 #include <zephyr/drivers/adc.h>
 #include <zephyr/kernel.h>
-#include <zephyr/sys/printk.h>
 #include <zephyr/sys/util.h>
 
 #include <stdio.h>
 #include <zephyr/drivers/sensor.h>
 
 #include <zephyr/logging/log.h>
+#include <zephyr/drivers/auxdisplay.h>
+
 
 LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
 
@@ -33,7 +34,7 @@ static int thermocouples_init(const struct device *const *devs, int ndevs)
 {
 	for (int i = 0; i < ndevs; ++i) {
 		if (!device_is_ready(devs[i])) {
-			printk("thermocouple %d: device is not ready\n", i);
+			LOG_ERR("thermocouple %d: device is not ready", i);
 			return -1;
 		}
 	}
@@ -44,12 +45,12 @@ static int thermocouples_init(const struct device *const *devs, int ndevs)
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg)
 {
 	if (!device_is_ready(dev)) {
-		printk("adc: device is not ready\n");
+		LOG_ERR("adc: device is not ready");
 		return -1;
 	}
 
 	if (adc_channel_setup(dev, chan_cfg)) {
-		printk("adc: could not setup the channel\n");
+		LOG_ERR("adc: could not setup the channel");
 		return -1;
 	}
 
@@ -61,13 +62,13 @@ static int lcd_init(const struct device *const dev)
 	int ret;
 
 	if (!device_is_ready(dev)) {
-		printk("lcd: device is not ready\n");
+		LOG_ERR("lcd: device is not ready");
 		return -1;
 	}
 
 	ret = auxdisplay_clear(dev);
 	if (ret) {
-		LOG_WARN("lcd: failed to clear the display");
+		LOG_WRN("lcd: failed to clear the display");
 	}
 
 	return 0;
@@ -81,15 +82,14 @@ static int adc_get_mv_reading(const struct device *const dev, const struct adc_s
 
 	ret = adc_read(dev, seq);
 	if (ret) {
-		printk("failed to read adc sequence: %d\n", ret);
+		LOG_ERR("failed to read adc sequence: %d", ret);
 		return -1;
 	}
 	val = (int32_t)(*(uint16_t *)seq->buffer);
-	printk("val: %d\n", val);
 
 	ret = adc_raw_to_millivolts(adc_ref_internal(dev), cfg->gain, seq->resolution, &val);
 	if (ret) {
-		printk("failed to convert the adc reading to milivolts: %d\n", ret);
+		LOG_ERR("failed to convert the adc reading to milivolts: %d", ret);
 		return -1;
 	}
 	*val_mv = val;
@@ -121,19 +121,19 @@ int main(void)
 
 	ret = thermocouples_init(thrmcpl_devs, ARRAY_SIZE(thrmcpl_devs));
 	if (ret) {
-		printk("sid: exit %d\n", ret);
+		LOG_ERR("sid: exit %d", ret);
 		return 1;
 	}
 
 	ret = adc_init(adc_dev, &adc_chan2_cfg);
 	if (ret) {
-		printk("sid: exit %d\n", ret);
+		LOG_ERR("sid: exit %d", ret);
 		return 1;
 	}
 
 	ret = lcd_init(lcd_dev);
 	if (ret) {
-		printk("sid: exit %d\n", ret);
+		LOG_ERR("sid: exit %d", ret);
 		return 1;
 	}
 
@@ -160,9 +160,9 @@ int main(void)
 
 		ret = adc_get_mv_reading(adc_dev, &adc_seq, &adc_chan2_cfg, &val_mv);
 		if (ret) {
-			printk(" (value in mV not available)\n");
+			LOG_ERR(" (value in mV not available)");
 		} else {
-			printk("adc reading = %"PRId32" mV\n", val_mv);
+			LOG_INF("adc reading = %"PRId32" mV", val_mv);
 		}
 		printf("mp3v5050v: %.2f +- %.2f kPa\n", mp3v5050v_get_pressure(adc_dev, val_mv),
 			mp3v5050v_get_pressure_error());
