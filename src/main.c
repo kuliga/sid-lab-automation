@@ -29,80 +29,18 @@ static const struct adc_channel_cfg adc_chan2_cfg =
 
 static const struct device *const lcd_dev = DEVICE_DT_GET(DT_NODELABEL(lcd0));
 
-
-static int thermocouples_init(const struct device *const *devs, int ndevs)
-{
-	for (int i = 0; i < ndevs; ++i) {
-		if (!device_is_ready(devs[i])) {
-			LOG_ERR("thermocouple %d: device is not ready", i);
-			return -1;
-		}
-	}
-
-	return 0;
-}
-
-static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg)
-{
-	if (!device_is_ready(dev)) {
-		LOG_ERR("adc: device is not ready");
-		return -1;
-	}
-
-	if (adc_channel_setup(dev, chan_cfg)) {
-		LOG_ERR("adc: could not setup the channel");
-		return -1;
-	}
-
-	return 0;
-}
-
-static int lcd_init(const struct device *const dev)
-{
-	int ret;
-
-	if (!device_is_ready(dev)) {
-		LOG_ERR("lcd: device is not ready");
-		return -1;
-	}
-
-	ret = auxdisplay_clear(dev);
-	if (ret) {
-		LOG_WRN("lcd: failed to clear the display");
-	}
-
-	return 0;
-}
-
+static int thermocouples_init(const struct device *const *devs, int ndevs);
+static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
+static int lcd_init(const struct device *const dev);
 static int adc_get_mv_reading(const struct device *const dev, const struct adc_sequence *const seq,
-			      const struct adc_channel_cfg *const cfg, int32_t *val_mv)
-{
-	int ret;
-	int32_t val;
+			      const struct adc_channel_cfg *const cfg, int32_t *val_mv);
 
-	ret = adc_read(dev, seq);
-	if (ret) {
-		LOG_ERR("failed to read adc sequence: %d", ret);
-		return -1;
-	}
-	val = (int32_t)(*(uint16_t *)seq->buffer);
-
-	ret = adc_raw_to_millivolts(adc_ref_internal(dev), cfg->gain, seq->resolution, &val);
-	if (ret) {
-		LOG_ERR("failed to convert the adc reading to milivolts: %d", ret);
-		return -1;
-	}
-	*val_mv = val;
-
-	return 0;
-}
-
-static double mp3v5050v_get_pressure(const struct device *const adc_dev, int32_t val_mv)
+static inline double mp3v5050v_get_pressure(const struct device *const adc_dev, int32_t val_mv)
 {
 	return 56 * ((float)val_mv / adc_ref_internal(adc_dev)) - 52;
 }
 
-static double mp3v5050v_get_pressure_error(void)
+static inline double mp3v5050v_get_pressure_error(void)
 {
 	return 1.25f * 1; // TODO: read the temperature to use proper temperature multiplier value
 }
@@ -169,5 +107,72 @@ int main(void)
 
 		k_sleep(K_MSEC(1000));
 	}
+	return 0;
+}
+
+static int thermocouples_init(const struct device *const *devs, int ndevs)
+{
+	for (int i = 0; i < ndevs; ++i) {
+		if (!device_is_ready(devs[i])) {
+			LOG_ERR("thermocouple %d: device is not ready", i);
+			return -1;
+		}
+	}
+
+	return 0;
+}
+
+static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg)
+{
+	if (!device_is_ready(dev)) {
+		LOG_ERR("adc: device is not ready");
+		return -1;
+	}
+
+	if (adc_channel_setup(dev, chan_cfg)) {
+		LOG_ERR("adc: could not setup the channel");
+		return -1;
+	}
+
+	return 0;
+}
+
+static int lcd_init(const struct device *const dev)
+{
+	int ret;
+
+	if (!device_is_ready(dev)) {
+		LOG_ERR("lcd: device is not ready");
+		return -1;
+	}
+
+	ret = auxdisplay_clear(dev);
+	if (ret) {
+		LOG_WRN("lcd: failed to clear the display");
+	}
+
+	return 0;
+}
+
+static int adc_get_mv_reading(const struct device *const dev, const struct adc_sequence *const seq,
+			      const struct adc_channel_cfg *const cfg, int32_t *val_mv)
+{
+	int ret;
+	int32_t val;
+
+	ret = adc_read(dev, seq);
+	if (ret) {
+		LOG_ERR("failed to read adc sequence: %d", ret);
+		return -1;
+	}
+	val = (int32_t)(*(uint16_t *)seq->buffer);
+
+	ret = adc_raw_to_millivolts(adc_ref_internal(dev), cfg->gain, seq->resolution, &val);
+	if (ret) {
+		LOG_ERR("failed to convert the adc reading to milivolts: %d", ret);
+		return -1;
+	}
+	*val_mv = val;
+
 	return 0;
 }
