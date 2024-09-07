@@ -23,6 +23,16 @@
 				 <&st_morpho_header ST_MORPHO_R_26 (GPIO_ACTIVE_HIGH)>,
 				 <&st_morpho_header ST_MORPHO_R_24 (GPIO_ACTIVE_HIGH)>;
 	};
+	gpio_keys {
+		status = "okay";
+		polling-mode;
+		debounce-interval-ms = <50>;
+		user_button: button {
+			label = "control button";
+			gpios = <&gpioc 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+			zephyr,code = <INPUT_KEY_0>;
+		};
+	};
 };
 
 &adc1 {
@@ -52,16 +62,4 @@
 		reg = <1>;
 		spi-max-frequency = <4300000>;
 	};
-};
-
-&gpio_keys {
-	status = "okay";
-	polling-mode;
-	debounce-interval-ms = <50>;
-};
-
-&user_button {
-	label = "control button";
-	gpios = <&gpioc 13 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
-	zephyr,code = <INPUT_KEY_0>;
 };
