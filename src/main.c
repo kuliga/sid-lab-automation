@@ -20,6 +20,8 @@
 
 #include <zephyr/input/input.h>
 
+#include <zephyr/drivers/gpio.h>
+
 
 LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
 
@@ -30,7 +32,7 @@ static const struct adc_channel_cfg adc_chan2_cfg =
 				ADC_CHANNEL_CFG_DT(DT_NODELABEL(pressure_sensor0));
 
 static const struct device *const lcd_dev = DEVICE_DT_GET(DT_NODELABEL(lcd0));
-static const struct device *const button_dev = DEVICE_DT_GET(DT_NODELABEL(user_button));
+static const struct device *const button_dev = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(user_button)));
 
 static int thermocouples_init(const struct device *const *devs, int ndevs);
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
@@ -49,7 +51,7 @@ static inline double mp3v5050v_get_pressure_error(void)
 	return 1.25f * 1; // TODO: read the temperature to use proper temperature multiplier value
 }
 
-INPUT_CALLBACK_DEFINE(NULL, button_callback);
+INPUT_CALLBACK_DEFINE(button_dev, button_callback);
 static volatile unsigned displayed_info_flag = 0;
 
 int main(void)
