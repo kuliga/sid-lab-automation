@@ -13,7 +13,7 @@
 		columns = <16>;
 		rows = <2>;
 		mode = <4>;
-		boot-delay-ms = <400>;
+		boot-delay-ms = <40>;
 		register-select-gpios = <&st_morpho_header ST_MORPHO_R_29 (GPIO_ACTIVE_HIGH)>;
 		enable-gpios = <&st_morpho_header ST_MORPHO_R_27 (GPIO_ACTIVE_HIGH)>;
 		read-write-gpios = <&st_morpho_header ST_MORPHO_R_25 (GPIO_ACTIVE_HIGH)>;

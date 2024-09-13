@@ -54,6 +54,8 @@ static inline double mp3v5050v_get_pressure_error(void)
 INPUT_CALLBACK_DEFINE(button_dev, button_callback);
 static volatile unsigned displayed_info_flag = 0;
 
+static volatile struct sensor_value thrmcpl_vals[2];
+
 int main(void)
 {
 	int ret = -1;
@@ -65,6 +67,7 @@ int main(void)
 		.resolution	= DT_PROP(DT_NODELABEL(pressure_sensor0), zephyr_resolution),
 		.calibrate	= true,
 	};
+	uint8_t lcdbuf[64];
 
 	ret = thermocouples_init(thrmcpl_devs, ARRAY_SIZE(thrmcpl_devs));
 	if (ret) {
@@ -83,6 +86,10 @@ int main(void)
 		LOG_ERR("sid: exit %d", ret);
 		return 1;
 	}
+	snprintk(lcdbuf, sizeof(lcdbuf), "Hello world from %s", CONFIG_BOARD);
+	(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
+	k_sleep(K_MSEC(1000));
+
 
 	while (1) {
 		int32_t val_mv = 0;
@@ -101,6 +108,7 @@ int main(void)
 				printf("Could not get temperature (%d)\n", ret);
 				return 0;
 			}
+			thrmcpl_vals[i] = val;
 	
 			printf("Temperature%d: %.2f C\n", i, sensor_value_to_double(&val));
 		}
@@ -113,6 +121,16 @@ int main(void)
 		}
 		printf("mp3v5050v: %.2f +- %.2f kPa\n", mp3v5050v_get_pressure(adc_dev, val_mv),
 			mp3v5050v_get_pressure_error());
+
+		if (displayed_info_flag == 2) {
+			snprintk(lcdbuf, sizeof(lcdbuf), "pressure:%.2f", mp3v5050v_get_pressure(adc_dev, val_mv));
+		} else {
+			snprintk(lcdbuf, sizeof(lcdbuf), "thrmcpl%d: %.2f", displayed_info_flag, sensor_value_to_double(&thrmcpl_vals[displayed_info_flag]));
+		}
+		(void) auxdisplay_clear(lcd_dev);
+		(void) auxdisplay_cursor_position_set(lcd_dev, AUXDISPLAY_POSITION_ABSOLUTE, 0, 0);
+		(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
+
 
 		k_sleep(K_MSEC(1000));
 	}
