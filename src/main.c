@@ -99,13 +99,13 @@ int main(void)
 			struct sensor_value val;
 			ret = sensor_sample_fetch_chan(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP);
 			if (ret < 0) {
-				printf("Could not fetch temperature (%d)\n", ret);
+				LOG_ERR("Could not fetch temperature (%d)\n", ret);
 				return 0;
 			}
 	
 			ret = sensor_channel_get(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP, &val);
 			if (ret < 0) {
-				printf("Could not get temperature (%d)\n", ret);
+				LOG_ERR("Could not get temperature (%d)\n", ret);
 				return 0;
 			}
 			thrmcpl_vals[i] = val;
