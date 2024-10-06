@@ -22,6 +22,7 @@
 
 #include <zephyr/drivers/gpio.h>
 
+#include <zephyr/drivers/counter.h>
 
 LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
 
@@ -34,9 +35,12 @@ static const struct adc_channel_cfg adc_chan2_cfg =
 static const struct device *const lcd_dev = DEVICE_DT_GET(DT_NODELABEL(lcd0));
 static const struct device *const button_dev = DEVICE_DT_GET(DT_PARENT(DT_NODELABEL(user_button)));
 
+static const struct device *const rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc));
+
 static int thermocouples_init(const struct device *const *devs, int ndevs);
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
 static int lcd_init(const struct device *const dev);
+static int rtc_init(const struct device *const dev);
 static int adc_get_mv_reading(const struct device *const dev, const struct adc_sequence *const seq,
 			      const struct adc_channel_cfg *const cfg, int32_t *val_mv);
 static void button_callback(struct input_event *evt);
@@ -76,6 +80,12 @@ int main(void)
 	}
 
 	ret = adc_init(adc_dev, &adc_chan2_cfg);
+	if (ret) {
+		LOG_ERR("sid: exit %d", ret);
+		return 1;
+	}
+
+	ret = rtc_init(rtc_dev);
 	if (ret) {
 		LOG_ERR("sid: exit %d", ret);
 		return 1;
@@ -176,6 +186,16 @@ static int lcd_init(const struct device *const dev)
 	ret = auxdisplay_clear(dev);
 	if (ret) {
 		LOG_WRN("lcd: failed to clear the display");
+	}
+
+	return 0;
+}
+
+static int rtc_init(const struct device *const dev)
+{
+	if (!device_is_ready(dev)) {
+		LOG_ERR("lcd: device is not ready");
+		return -1;
 	}
 
 	return 0;
