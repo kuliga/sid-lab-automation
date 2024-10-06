@@ -37,10 +37,13 @@ static const struct device *const button_dev = DEVICE_DT_GET(DT_PARENT(DT_NODELA
 
 static const struct device *const rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc));
 
+static const struct device *const emctrl_gpio_dev = DEVICE_DT_GET(DT_NODELABEL(emctrl_gpio));
+
 static int thermocouples_init(const struct device *const *devs, int ndevs);
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
 static int lcd_init(const struct device *const dev);
 static int rtc_init(const struct device *const dev);
+static int emctrl_gpio_init(const struct device *const dev);
 static int adc_get_mv_reading(const struct device *const dev, const struct adc_sequence *const seq,
 			      const struct adc_channel_cfg *const cfg, int32_t *val_mv);
 static void button_callback(struct input_event *evt);
@@ -86,6 +89,12 @@ int main(void)
 	}
 
 	ret = rtc_init(rtc_dev);
+	if (ret) {
+		LOG_ERR("sid: exit %d", ret);
+		return 1;
+	}
+
+	ret = emctrl_gpio_init(emctrl_gpio_dev);
 	if (ret) {
 		LOG_ERR("sid: exit %d", ret);
 		return 1;
@@ -194,8 +203,27 @@ static int lcd_init(const struct device *const dev)
 static int rtc_init(const struct device *const dev)
 {
 	if (!device_is_ready(dev)) {
-		LOG_ERR("lcd: device is not ready");
+		LOG_ERR("rtc: device is not ready");
 		return -1;
+	}
+
+	return 0;
+}
+
+static int emctrl_gpio_init(const struct device *const dev)
+{
+	if (!device_is_ready(dev)) {
+		LOG_ERR("emctrl_gpio: device is not ready");
+		return -1;
+	}
+
+	for (int i = 0; i < 8; ++i) {
+		int ret;
+
+		ret = gpio_pin_configure(dev, i, GPIO_OUTPUT | GPIO_OUTPUT_INIT_LOW);
+		if (ret) {
+			LOG_ERR("emctrl_gpio: pin configure failed: %d", ret);
+		}
 	}
 
 	return 0;

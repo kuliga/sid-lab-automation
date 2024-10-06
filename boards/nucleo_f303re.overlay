@@ -63,3 +63,15 @@
 		spi-max-frequency = <4300000>;
 	};
 };
+
+&i2c1 {
+	/* electromechanics devices control gpio */
+	emctrl_gpio: pcf8574@20 {
+		status="okay";
+		compatible = "nxp,pcf857x";
+		reg = <0x20>;
+		gpio-controller;
+		ngpios = <8>;
+		#gpio-cells = <2>;
+	};
+};
