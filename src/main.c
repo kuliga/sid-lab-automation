@@ -151,7 +151,8 @@ int main(void)
 		(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
 
 
-		k_sleep(K_MSEC(1000));
+		ret = gpio_pin_toggle(emctrl_gpio_dev, 0);
+		k_sleep(K_MSEC(3000));
 	}
 	return 0;
 }
