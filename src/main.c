@@ -42,8 +42,7 @@ static const struct device *const button_dev = DEVICE_DT_GET(DT_PARENT(DT_NODELA
 static const struct device *const rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc));
 
 static const struct device *const emctrl_gpio_dev = DEVICE_DT_GET(DT_NODELABEL(emctrl_gpio));
-
-static const struct pwm_dt_spec dcpump_pwm_dt = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
+static const struct pwm_dt_spec dcpump_pwm_dt = PWM_DT_SPEC_GET_BY_NAME(DT_PATH(zephyr_user), dcpump);
 
 static int thermocouples_init(const struct device *const *devs, int ndevs);
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
@@ -102,6 +101,12 @@ int main(void)
 
 	ret = emctrl_gpio_init(emctrl_gpio_dev);
 	if (ret) {
+		LOG_ERR("sid: exit %d", ret);
+		return 1;
+	}
+
+	ret = pwm_is_ready_dt(&dcpump_pwm_dt);
+	if (!ret) {
 		LOG_ERR("sid: exit %d", ret);
 		return 1;
 	}

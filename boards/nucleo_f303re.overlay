@@ -6,6 +6,7 @@
 	zephyr,user {
 		io-channels = <&adc1 2>; /* CN9 pin A1 */
 		pwms = <&pwm2 2 PWM_MSEC(3) PWM_POLARITY_NORMAL>;
+		pwm-names = "dcpump";
 	};
 
 	lcd0: auxdisplay {
