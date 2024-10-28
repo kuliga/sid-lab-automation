@@ -24,7 +24,11 @@
 
 #include <zephyr/drivers/counter.h>
 
+#include <zephyr/drivers/pwm.h>
+
 LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
+
+#define ZEPHYR_USER_NODE DT_PATH(zephyr_user)
 
 static const struct device *const thrmcpl_devs[] = {DEVICE_DT_GET(DT_NODELABEL(thermocouple0)),
 						    DEVICE_DT_GET(DT_NODELABEL(thermocouple1))};
@@ -38,6 +42,8 @@ static const struct device *const button_dev = DEVICE_DT_GET(DT_PARENT(DT_NODELA
 static const struct device *const rtc_dev = DEVICE_DT_GET(DT_NODELABEL(rtc));
 
 static const struct device *const emctrl_gpio_dev = DEVICE_DT_GET(DT_NODELABEL(emctrl_gpio));
+
+static const struct pwm_dt_spec dcpump_pwm_dt = PWM_DT_SPEC_GET(DT_PATH(zephyr_user));
 
 static int thermocouples_init(const struct device *const *devs, int ndevs);
 static int adc_init(const struct device *const dev, const struct adc_channel_cfg *const chan_cfg);
