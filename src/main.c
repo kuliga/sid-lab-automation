@@ -111,6 +111,13 @@ int main(void)
 		return 1;
 	}
 
+	//ret = pwm_set_pulse_dt(&dcpump_pwm_dt, PWM_NSEC(0));
+	ret = pwm_set_dt(&dcpump_pwm_dt, PWM_NSEC(1000), PWM_NSEC(850));
+	if (ret) {
+		LOG_ERR("sid: exit %d", ret);
+		return 1;
+	}
+
 	ret = lcd_init(lcd_dev);
 	if (ret) {
 		LOG_ERR("sid: exit %d", ret);
@@ -162,7 +169,7 @@ int main(void)
 		(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
 
 
-		ret = gpio_pin_toggle(emctrl_gpio_dev, 0);
+		//ret = gpio_pin_toggle(emctrl_gpio_dev, 0);
 		k_sleep(K_MSEC(3000));
 	}
 	return 0;
