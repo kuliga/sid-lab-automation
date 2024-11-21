@@ -44,14 +44,12 @@ int main(void)
 			struct sensor_value val;
 			ret = sensor_sample_fetch_chan(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP);
 			if (ret < 0) {
-				LOG_ERR("Could not fetch temperature (%d)\n", ret);
-				return 0;
+				LOG_WRN("Could not fetch temperature (%d)\n", ret);
 			}
 	
 			ret = sensor_channel_get(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP, &val);
 			if (ret < 0) {
-				LOG_ERR("Could not get temperature (%d)\n", ret);
-				return 0;
+				LOG_WRN("Could not get temperature (%d)\n", ret);
 			}
 			thrmcpl_vals[i] = val;
 	
@@ -68,9 +66,11 @@ int main(void)
 			mp3v5050v_get_pressure_error());
 
 		if (displayed_info_flag == 2) {
-			snprintk(lcdbuf, sizeof(lcdbuf), "pressure:%.2f", mp3v5050v_get_pressure(adc_dev, val_mv));
+			snprintk(lcdbuf, sizeof(lcdbuf), "pressure:%.2f",
+				 mp3v5050v_get_pressure(adc_dev, val_mv));
 		} else {
-			snprintk(lcdbuf, sizeof(lcdbuf), "thrmcpl%d: %.2f", displayed_info_flag, sensor_value_to_double(&thrmcpl_vals[displayed_info_flag]));
+			snprintk(lcdbuf, sizeof(lcdbuf), "thrmcpl%d: %.2f", displayed_info_flag,
+				 sensor_value_to_double(&thrmcpl_vals[displayed_info_flag]));
 		}
 		(void) auxdisplay_clear(lcd_dev);
 		(void) auxdisplay_cursor_position_set(lcd_dev, AUXDISPLAY_POSITION_ABSOLUTE, 0, 0);
