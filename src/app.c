@@ -9,6 +9,19 @@
 
 LOG_MODULE_REGISTER(sid, LOG_LEVEL_DBG);
 
+enum thrmcpl_id {
+	THRMCPL0,
+	THRMCPL1,
+	THRMCPL2,
+};
+
+enum emctrl_id {
+	VALVE0,
+	VALVE1,
+	VALVE2,
+	HEATER0,
+};
+
 static volatile unsigned displayed_info_flag = 0;
 static struct sensor_value thrmcpl_vals[2];
 
@@ -44,12 +57,12 @@ int main(void)
 			struct sensor_value val;
 			ret = sensor_sample_fetch_chan(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP);
 			if (ret < 0) {
-				LOG_WRN("Could not fetch temperature (%d)\n", ret);
+				LOG_WRN("thermocouple%d: Could not fetch temperature (%d)\n", i, ret);
 			}
 	
 			ret = sensor_channel_get(thrmcpl_devs[i], SENSOR_CHAN_AMBIENT_TEMP, &val);
 			if (ret < 0) {
-				LOG_WRN("Could not get temperature (%d)\n", ret);
+				LOG_WRN("thermocouple%d: Could not get temperature (%d)\n", i, ret);
 			}
 			thrmcpl_vals[i] = val;
 	
