@@ -16,10 +16,10 @@ enum thrmcpl_id {
 };
 
 enum emctrl_id {
-	VALVE0,
-	VALVE1,
-	VALVE2,
-	HEATER0,
+	VALVE0	= 0,
+	VALVE1	= 1,
+	VALVE2	= 2,
+	HEATER0	= 7,
 };
 
 static volatile unsigned displayed_info_flag = 0;
@@ -48,8 +48,21 @@ int main(void)
 	(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
 	k_sleep(K_MSEC(1000));
 
+	k_sleep(K_MSEC(2000));
+	LOG_WRN("START\n");
 
-	while (1) {
+	// 1= zamyka
+	// 0= otwarty
+	// NORMALNIE OTWARTY
+	ret = gpio_pin_set(emctrl_gpio_dev, VALVE0, 1);
+	k_sleep(K_MSEC(200));
+	ret = gpio_pin_set(emctrl_gpio_dev, VALVE1, 0);
+	k_sleep(K_MSEC(200));
+
+once_again:
+
+	//while (1) {
+	for (int i = 0; i < 30; ++i) {
 		int32_t val_mv = 0;
 
 		for (int i = 0; i < 2; ++i) {
@@ -85,14 +98,25 @@ int main(void)
 			snprintk(lcdbuf, sizeof(lcdbuf), "thrmcpl%d: %.2f", displayed_info_flag,
 				 sensor_value_to_double(&thrmcpl_vals[displayed_info_flag]));
 		}
-		(void) auxdisplay_clear(lcd_dev);
-		(void) auxdisplay_cursor_position_set(lcd_dev, AUXDISPLAY_POSITION_ABSOLUTE, 0, 0);
-		(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
+		k_sleep(K_MSEC(2000));
+	//	(void) auxdisplay_clear(lcd_dev);
+	//	(void) auxdisplay_cursor_position_set(lcd_dev, AUXDISPLAY_POSITION_ABSOLUTE, 0, 0);
+	//	(void) auxdisplay_write(lcd_dev, lcdbuf, strlen(lcdbuf));
 
 
-		//ret = gpio_pin_toggle(emctrl_gpio_dev, 0);
-		k_sleep(K_MSEC(3000));
+		//ret = gpio_pin_toggle(emctrl_gpio_dev, VALVE0);
+		//k_sleep(K_MSEC(3000));
+		//ret = gpio_pin_toggle(emctrl_gpio_dev, VALVE1);
+		//k_sleep(K_MSEC(3000));
+	//	ret = gpio_pin_set(emctrl_gpio_dev, VALVE0, 0);
+	//	k_sleep(K_MSEC(2000));
+	//`	ret = gpio_pin_toggle(emctrl_gpio_dev, VALVE1);
+	//`	k_sleep(K_MSEC(3000));
 	}
+	ret = gpio_pin_set(emctrl_gpio_dev, VALVE0, 0);
+	k_sleep(K_MSEC(200));
+	goto once_again;
+	LOG_WRN("FINISH\n");
 	return 0;
 }
 

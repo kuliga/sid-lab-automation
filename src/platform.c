@@ -62,7 +62,8 @@ int platform_init(void)
 	}
 
 	//ret = pwm_set_pulse_dt(&dcpump_pwm_dt, PWM_NSEC(0));
-	ret = pwm_set_dt(&dcpump_pwm_dt, PWM_NSEC(1000), PWM_NSEC(850));
+	ret = pwm_set_dt(&dcpump_pwm_dt, PWM_NSEC(1000), PWM_NSEC(1000));
+	//ret = pwm_set_dt(&dcpump_pwm_dt, PWM_NSEC(1000), PWM_NSEC(0));
 	if (ret) {
 		LOG_ERR("sid-platform: exit %d", ret);
 		return 1;
@@ -164,7 +165,7 @@ static int emctrl_gpio_init(const struct device *const dev)
 	for (int i = 0; i < 8; ++i) {
 		int ret;
 
-		ret = gpio_pin_configure(dev, i, GPIO_OUTPUT | GPIO_OUTPUT_INIT_LOW);
+		ret = gpio_pin_configure(dev, i, GPIO_OUTPUT | GPIO_OUTPUT_INIT_HIGH);
 		if (ret) {
 			LOG_ERR("emctrl_gpio: pin configure failed: %d", ret);
 		}

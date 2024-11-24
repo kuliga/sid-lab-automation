@@ -41,6 +41,7 @@ static inline double mp3v5050v_get_pressure_error(void)
 {
 	return 1.25f * 1; // TODO: read the temperature to use proper temperature multiplier value
 }
+
 /*
  * Functions to be defined by the app.
  */
