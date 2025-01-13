@@ -62,7 +62,7 @@ int main(void)
 once_again:
 
 	//while (1) {
-	for (int i = 0; i < 30; ++i) {
+	for (int i = 0; i < 60; ++i) {
 		int32_t val_mv = 0;
 
 		for (int i = 0; i < 2; ++i) {
@@ -107,7 +107,7 @@ once_again:
 		//ret = gpio_pin_toggle(emctrl_gpio_dev, VALVE0);
 		//k_sleep(K_MSEC(3000));
 		//ret = gpio_pin_toggle(emctrl_gpio_dev, VALVE1);
-		//k_sleep(K_MSEC(3000));
+		//k_sleep(K_MSEC(300));
 	//	ret = gpio_pin_set(emctrl_gpio_dev, VALVE0, 0);
 	//	k_sleep(K_MSEC(2000));
 	//`	ret = gpio_pin_toggle(emctrl_gpio_dev, VALVE1);
@@ -115,6 +115,7 @@ once_again:
 	}
 	ret = gpio_pin_set(emctrl_gpio_dev, VALVE0, 0);
 	k_sleep(K_MSEC(200));
+	LOG_WRN("finished cycle\n");
 	goto once_again;
 	LOG_WRN("FINISH\n");
 	return 0;
